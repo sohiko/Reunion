@@ -97,8 +97,31 @@ describe('AuthService', () => {
         graduation_year: 2020,
       };
 
+      // モック設定
+      const mockRole = { id: 'role-1', name: 'GENERAL_MEMBER' };
+      const mockUser = {
+        id: 'user-1',
+        email: registerData.email,
+        status: 'PENDING',
+        role: mockRole,
+        profile: null,
+      };
+
+      (prisma.role.findUnique as jest.Mock).mockResolvedValue(mockRole);
+      (PasswordUtil.isValidPassword as jest.Mock).mockReturnValue(true);
+      (PasswordUtil.hash as jest.Mock).mockResolvedValue('hashed-password');
+
+      // 最初の呼び出し - ユーザーが見つからない
+      (prisma.user.findUnique as jest.Mock).mockResolvedValueOnce(null);
+      (prisma.user.create as jest.Mock).mockResolvedValueOnce(mockUser);
+      (prisma.profile.create as jest.Mock).mockResolvedValueOnce({});
+      (prisma.consentRecord.create as jest.Mock).mockResolvedValueOnce({});
+
       // 最初の登録
       await AuthService.register(registerData, '127.0.0.1', 'Test Agent');
+
+      // 2回目の呼び出し - ユーザーが見つかる（重複）
+      (prisma.user.findUnique as jest.Mock).mockResolvedValueOnce(mockUser);
 
       // 重複登録の試行
       await expect(
@@ -115,6 +138,9 @@ describe('AuthService', () => {
         graduation_year: 2020,
       };
 
+      // 弱いパスワードとして判定されるようにモック設定
+      (PasswordUtil.isValidPassword as jest.Mock).mockReturnValueOnce(false);
+
       await expect(
         AuthService.register(registerData, '127.0.0.1', 'Test Agent')
       ).rejects.toThrow('Password does not meet security requirements');
@@ -122,41 +148,28 @@ describe('AuthService', () => {
   });
 
   describe('login', () => {
-    beforeEach(async () => {
-      // テストユーザーを作成
-      const generalMemberRole = await prisma.role.findUnique({
-        where: { name: 'GENERAL_MEMBER' }
-      });
-
-      if (generalMemberRole) {
-        const passwordHash = await PasswordUtil.hash('TestPassword123!');
-
-        await prisma.user.create({
-          data: {
-            id: 'test-user-id',
-            email: 'login-test@example.com',
-            password_hash: passwordHash,
-            status: 'ACTIVE',
-            role_id: generalMemberRole.id,
-          }
-        });
-
-        await prisma.profile.create({
-          data: {
-            id: 'test-user-id',
-            name_sei: 'テスト',
-            name_mei: 'ユーザー',
-            graduation_year: 2020,
-          }
-        });
-      }
-    });
 
     it('should login successfully with correct credentials', async () => {
       const loginData = {
         email: 'login-test@example.com',
         password: 'TestPassword123!',
       };
+
+      const mockUser = {
+        id: 'user-1',
+        email: loginData.email,
+        status: 'ACTIVE',
+        role: { id: 'role-1', name: 'GENERAL_MEMBER' },
+        profile: {
+          name_sei: 'テスト',
+          name_mei: 'ユーザー',
+          graduation_year: 2020,
+        },
+      };
+
+      // モック設定
+      (prisma.user.findUnique as jest.Mock).mockResolvedValue(mockUser);
+      (PasswordUtil.verify as jest.Mock).mockResolvedValue(true);
 
       const result = await AuthService.login(loginData, '127.0.0.1', 'Test Agent');
 
