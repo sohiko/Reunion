@@ -1,4 +1,4 @@
-import jwt from 'jsonwebtoken';
+import jwt, { SignOptions } from 'jsonwebtoken';
 import { config } from '../config';
 import { UserRole, JWTPayload } from '@reunion/shared';
 
@@ -7,18 +7,20 @@ export class JWTUtil {
    * JWTアクセストークンの生成
    */
   static generateAccessToken(payload: Omit<JWTPayload, 'iat' | 'exp'>): string {
-    return jwt.sign(payload, config.jwt.secretKey, {
-      expiresIn: config.jwt.expiresIn,
-    });
+    const options: SignOptions = {
+      expiresIn: config.jwt.expiresIn as any,
+    };
+    return jwt.sign(payload, config.jwt.secretKey, options);
   }
 
   /**
    * JWTリフレッシュトークンの生成
    */
   static generateRefreshToken(payload: { user_id: string; email: string }): string {
-    return jwt.sign(payload, config.jwt.refreshSecretKey, {
-      expiresIn: config.jwt.refreshExpiresIn,
-    });
+    const options: SignOptions = {
+      expiresIn: config.jwt.refreshExpiresIn as any,
+    };
+    return jwt.sign(payload, config.jwt.refreshSecretKey, options);
   }
 
   /**

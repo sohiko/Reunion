@@ -2,12 +2,10 @@ import { prisma } from '../utils/prisma';
 import { EmailService } from './emailService';
 import { UUIDUtil } from '@reunion/shared';
 import {
-  Event,
-  EventType,
-  EventStatus,
   AttendanceStatus,
   UserRole
 } from '@reunion/shared';
+import { Event, EventStatus, EventType } from '@prisma/client';
 
 export interface CreateEventData {
   title: string;
@@ -50,7 +48,7 @@ export class EventService {
         where: { coordinator_id: creatorId }
       });
 
-      const assignedYears = coordinatorAssignments.map(assignment => assignment.graduation_year);
+      const assignedYears = coordinatorAssignments.map((assignment: any) => assignment.graduation_year);
       const unauthorizedYears = eventData.target_graduation_years.filter(
         year => !assignedYears.includes(year)
       );
@@ -115,7 +113,7 @@ export class EventService {
         where: { coordinator_id: updaterId }
       });
 
-      const assignedYears = coordinatorAssignments.map(assignment => assignment.graduation_year);
+      const assignedYears = coordinatorAssignments.map((assignment: any) => assignment.graduation_year);
       const unauthorizedYears = updateData.target_graduation_years.filter(
         year => !assignedYears.includes(year)
       );
@@ -238,7 +236,7 @@ export class EventService {
         include: {
           role: true,
           profile: true,
-          coordinator_assignments: true
+          coordinatorAssignments: true
         }
       });
 
@@ -256,7 +254,7 @@ export class EventService {
         }
         // 幹事の場合、担当学年または全体公開イベントのみ
         else if (user.role.name === UserRole.COORDINATOR) {
-          const assignedYears = user.coordinator_assignments.map(a => a.graduation_year);
+          const assignedYears = (user as any).coordinatorAssignments.map((a: any) => a.graduation_year);
           where.OR = [
             { is_all_graduates: true },
             {
@@ -383,9 +381,9 @@ export class EventService {
           where: { coordinator_id: requesterId }
         });
 
-        const assignedYears = coordinatorAssignments.map(a => a.graduation_year);
+        const assignedYears = coordinatorAssignments.map((a: any) => a.graduation_year);
         const hasAccess = event.is_all_graduates ||
-                         event.target_graduation_years.some(year => assignedYears.includes(year));
+                         event.target_graduation_years.some((year: any) => assignedYears.includes(year));
 
         if (!hasAccess) {
           throw new Error('You do not have permission to view this event\'s attendance');
@@ -513,7 +511,11 @@ export class EventService {
 
         try {
           const emailService = new EmailService();
-          await emailService.sendEmail(user.email, subject, html);
+          await emailService.sendEmail({
+            to: user.email,
+            subject,
+            html,
+          });
         } catch (error) {
           console.error(`Failed to send event notification to ${user.email}:`, error);
         }

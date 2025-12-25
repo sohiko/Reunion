@@ -144,24 +144,24 @@ const DashboardPage: React.FC = () => {
             <HStack spacing={4}>
               <Avatar
                 size="lg"
-                name={`${user.profile?.name_sei} ${user.profile?.name_mei}`}
+                name={`${(user as any).profile?.name_sei} ${(user as any).profile?.name_mei}`}
               />
               <VStack align="start" spacing={2}>
                 <HStack>
                   <Heading size="md">
-                    {user.profile?.name_sei} {user.profile?.name_mei}
+                    {(user as any).profile?.name_sei} {(user as any).profile?.name_mei}
                   </Heading>
-                  <Badge colorScheme={getRoleBadgeColor(user.role as UserRole)}>
-                    {getRoleDisplayName(user.role as UserRole)}
+                    <Badge colorScheme={getRoleBadgeColor((user as any).role as UserRole)}>
+                    {getRoleDisplayName((user as any).role as UserRole)}
                   </Badge>
                   <Badge colorScheme={getStatusBadgeColor(user.status)}>
                     {getStatusDisplayName(user.status)}
                   </Badge>
                 </HStack>
                 <Text color="gray.600">{user.email}</Text>
-                {user.profile?.graduation_year && (
+                {(user as any).profile?.graduation_year && (
                   <Text color="gray.600">
-                    卒業年: {user.profile.graduation_year}年
+                    卒業年: {(user as any).profile.graduation_year}年
                   </Text>
                 )}
               </VStack>
@@ -240,9 +240,9 @@ const DashboardPage: React.FC = () => {
           </GridItem>
 
           {/* 管理機能（幹事以上） */}
-          {(user.role === UserRole.COORDINATOR ||
-            user.role === UserRole.OFFICER ||
-            user.role === UserRole.SYSTEM_ADMIN) && (
+          {((user as any).role === UserRole.COORDINATOR ||
+            (user as any).role === UserRole.OFFICER ||
+            (user as any).role === UserRole.SYSTEM_ADMIN) && (
             <GridItem>
               <Card>
                 <CardBody>
@@ -261,7 +261,7 @@ const DashboardPage: React.FC = () => {
           )}
 
           {/* システム管理（管理者） */}
-          {user.role === UserRole.SYSTEM_ADMIN && (
+          {(user as any).role === UserRole.SYSTEM_ADMIN && (
             <GridItem>
               <Card>
                 <CardBody>

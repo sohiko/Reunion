@@ -16,8 +16,8 @@ import {
   NumberInput,
   NumberInputField,
   NumberInputStepper,
-  NumberInputDecrementTrigger,
-  NumberInputIncrementTrigger,
+  NumberDecrementStepper,
+  NumberIncrementStepper,
 } from '@chakra-ui/react';
 import { useRouter } from 'next/router';
 import { useAuth } from '../contexts/AuthContext';
@@ -181,8 +181,8 @@ const RegisterPage: React.FC = () => {
                   >
                     <NumberInputField />
                     <NumberInputStepper>
-                      <NumberInputIncrementTrigger />
-                      <NumberInputDecrementTrigger />
+                      <NumberIncrementStepper />
+                      <NumberDecrementStepper />
                     </NumberInputStepper>
                   </NumberInput>
                 </FormControl>

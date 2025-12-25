@@ -61,7 +61,7 @@ export class ContactAccessController {
           success: false,
           error: 'Request not found or access denied'
         };
-        return res.status(404).json(response);
+        res.status(404).json(response);
       }
 
       const response: ApiResponse = {
@@ -139,7 +139,7 @@ export class ContactAccessController {
           success: false,
           error: 'Invalid action. Must be "approve" or "reject".'
         };
-        return res.status(400).json(response);
+        res.status(400).json(response);
       }
 
       const request = await contactAccessService.respondToRequest(

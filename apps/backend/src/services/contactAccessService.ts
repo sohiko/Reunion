@@ -2,11 +2,10 @@ import { prisma } from '../utils/prisma';
 import { EmailService } from './emailService';
 import { UUIDUtil } from '@reunion/shared';
 import {
-  ContactAccessRequest,
-  ContactAccessStatus,
   ContactType,
   UserRole
 } from '@reunion/shared';
+import { ContactAccessRequest, ContactAccessStatus } from '@prisma/client';
 
 export class ContactAccessService {
   /**
@@ -284,7 +283,7 @@ export class ContactAccessService {
     const contactInfo: any = {};
 
     // 承認された連絡先種別のみ返す
-    const approvedTypes = approvedLogs.map(log => log.contact_type);
+    const approvedTypes = approvedLogs.map((log: any) => log.contact_type);
 
     if (approvedTypes.includes(ContactType.EMAIL) && userProfile.email) {
       contactInfo.email = userProfile.email;
@@ -344,7 +343,7 @@ export class ContactAccessService {
 
       <h3>申請内容</h3>
       <ul>
-        ${request.requested_contact_types.map(type => `<li>${this.getContactTypeDisplayName(type)}</li>`).join('')}
+        ${request.requested_contact_types.map((type: any) => `<li>${this.getContactTypeDisplayName(type)}</li>`).join('')}
       </ul>
 
       <h3>申請理由</h3>
@@ -359,7 +358,11 @@ export class ContactAccessService {
     // EmailServiceが実装済みの場合に送信
     try {
       const emailService = new EmailService();
-      await emailService.sendEmail(request.target.email, subject, html);
+      await emailService.sendEmail({
+        to: request.target.email,
+        subject,
+        html,
+      });
     } catch (error) {
       console.error('Failed to send notification email:', error);
     }

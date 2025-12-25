@@ -1,10 +1,9 @@
 import { prisma } from '../utils/prisma';
 import { UUIDUtil } from '@reunion/shared';
 import {
-  AuditLog,
-  AuditActionType,
   ApprovalStatus
 } from '@reunion/shared';
+import { AuditLog, AuditActionType } from '@prisma/client';
 
 export class AuditService {
   /**
@@ -244,15 +243,15 @@ export class AuditService {
       })
     ]);
 
-    const logsByAction = actionStats.reduce((acc, stat) => {
+    const logsByAction = actionStats.reduce((acc: Record<string, number>, stat: any) => {
       acc[stat.action] = stat._count.action;
       return acc;
-    }, {} as Record<string, number>);
+    }, {});
 
-    const logsByResourceType = resourceStats.reduce((acc, stat) => {
+    const logsByResourceType = resourceStats.reduce((acc: Record<string, number>, stat: any) => {
       acc[stat.resource_type] = stat._count.resource_type;
       return acc;
-    }, {} as Record<string, number>);
+    }, {});
 
     return {
       totalLogs,

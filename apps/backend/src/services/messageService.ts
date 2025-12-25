@@ -1,10 +1,9 @@
 import { prisma } from '../utils/prisma';
 import { UUIDUtil } from '@reunion/shared';
 import {
-  Message,
-  MessageType,
   UserRole
 } from '@reunion/shared';
+import { Message, MessageType } from '@prisma/client';
 
 export interface CreateMessageData {
   recipient_id: string;
@@ -77,7 +76,7 @@ export class MessageService {
   ): Promise<Message[]> {
     const sender = await prisma.user.findUnique({
       where: { id: senderId },
-      include: { role: true, coordinator_assignments: true }
+      include: { role: true, coordinatorAssignments: true }
     });
 
     if (!sender) {
@@ -424,7 +423,7 @@ export class MessageService {
 
     // 幹事の場合、担当学年のみ
     if (sender.role.name === UserRole.COORDINATOR) {
-      const assignedYears = sender.coordinator_assignments.map((a: any) => a.graduation_year);
+      const assignedYears = (sender as any).coordinatorAssignments.map((a: any) => a.graduation_year);
       return assignedYears.includes(recipient.profile?.graduation_year);
     }
 
@@ -451,7 +450,7 @@ export class MessageService {
   ): Promise<string[]> {
     const sender = await prisma.user.findUnique({
       where: { id: senderId },
-      include: { role: true, coordinator_assignments: true }
+      include: { role: true, coordinatorAssignments: true }
     });
 
     if (!sender) {
@@ -464,7 +463,7 @@ export class MessageService {
 
     // 幹事の場合、担当学年のみ
     if (sender.role.name === UserRole.COORDINATOR) {
-      const assignedYears = sender.coordinator_assignments.map(a => a.graduation_year);
+      const assignedYears = (sender as any).coordinatorAssignments.map((a: any) => a.graduation_year);
       where.profile = {
         graduation_year: {
           in: assignedYears
@@ -493,6 +492,6 @@ export class MessageService {
       select: { id: true }
     });
 
-    return users.map(u => u.id);
+    return users.map((u: any) => u.id);
   }
 }

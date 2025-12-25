@@ -24,7 +24,7 @@ export class AuthController {
             id: user.id,
             email: user.email,
             status: user.status,
-            role: user.role.name,
+            role: (user as any).role.name,
           }
         }
       };
@@ -73,11 +73,11 @@ export class AuthController {
             id: result.user.id,
             email: result.user.email,
             status: result.user.status,
-            role: result.user.role.name,
-            profile: result.user.profile ? {
-              name_sei: result.user.profile.name_sei,
-              name_mei: result.user.profile.name_mei,
-              graduation_year: result.user.profile.graduation_year,
+            role: (result.user as any).role.name,
+            profile: (result.user as any).profile ? {
+              name_sei: (result.user as any).profile.name_sei,
+              name_mei: (result.user as any).profile.name_mei,
+              graduation_year: (result.user as any).profile.graduation_year,
             } : undefined,
           },
           expires_in: result.expires_in,
@@ -106,7 +106,7 @@ export class AuthController {
           success: false,
           error: 'Refresh token required'
         };
-        return res.status(400).json(response);
+        res.status(400).json(response);
       }
 
       const result = await AuthService.refreshToken(refresh_token);
@@ -157,7 +157,7 @@ export class AuthController {
           success: false,
           error: 'Current password and new password are required'
         };
-        return res.status(400).json(response);
+        res.status(400).json(response);
       }
 
       await AuthService.changePassword(userId, current_password, new_password);
@@ -189,7 +189,7 @@ export class AuthController {
           success: false,
           error: 'Email is required'
         };
-        return res.status(400).json(response);
+        res.status(400).json(response);
       }
 
       await AuthService.requestPasswordReset(email);
@@ -252,7 +252,7 @@ export class AuthController {
           success: false,
           error: 'User not found'
         };
-        return res.status(404).json(response);
+        res.status(404).json(response);
       }
 
       const response: ApiResponse = {
@@ -262,12 +262,12 @@ export class AuthController {
             id: user.id,
             email: user.email,
             status: user.status,
-            role: user.role.name,
-            profile: user.profile ? {
-              name_sei: user.profile.name_sei,
-              name_mei: user.profile.name_mei,
-              graduation_year: user.profile.graduation_year,
-              student_number: user.profile.student_number,
+            role: (user as any).role.name,
+            profile: (user as any).profile ? {
+              name_sei: (user as any).profile.name_sei,
+              name_mei: (user as any).profile.name_mei,
+              graduation_year: (user as any).profile.graduation_year,
+              student_number: (user as any).profile.student_number,
             } : undefined,
           }
         }

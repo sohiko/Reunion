@@ -60,7 +60,7 @@ export class MessageController {
           success: false,
           error: 'No target users found'
         };
-        return res.status(400).json(response);
+        res.status(400).json(response);
       }
 
       const messages = await messageService.sendBulkMessage(
@@ -104,7 +104,7 @@ export class MessageController {
           success: false,
           error: 'Message not found or access denied'
         };
-        return res.status(404).json(response);
+        res.status(404).json(response);
       }
 
       const response: ApiResponse = {

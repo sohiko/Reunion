@@ -38,7 +38,15 @@ export class VerificationController {
           success: false,
           error: 'No file uploaded'
         };
-        return res.status(400).json(response);
+        res.status(400).json(response);
+      }
+
+      if (!file) {
+        const response: ApiResponse = {
+          success: false,
+          error: 'No file uploaded'
+        };
+        res.status(400).json(response);
       }
 
       const document = await verificationService.uploadVerificationDocument(
@@ -83,7 +91,7 @@ export class VerificationController {
           documents: documents.map(doc => ({
             id: doc.id,
             user_id: doc.user_id,
-            user: doc.user,
+            user: (doc as any).user,
             status: doc.status,
             uploaded_at: doc.uploaded_at,
             original_filename: doc.original_filename,
@@ -109,7 +117,7 @@ export class VerificationController {
       const { documentId } = req.params;
       const reviewerId = req.user?.user_id;
 
-      const document = await verificationService.getVerificationDocument(documentId, reviewerId);
+      const document = await verificationService.getVerificationDocument(documentId, reviewerId) as any;
 
       const response: ApiResponse = {
         success: true,
@@ -152,7 +160,7 @@ export class VerificationController {
           success: false,
           error: 'Invalid action. Must be "approve" or "reject".'
         };
-        return res.status(400).json(response);
+        res.status(400).json(response);
       }
 
       const document = await verificationService.reviewDocument(

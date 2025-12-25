@@ -3,10 +3,9 @@ import { FileUploadService } from './fileUploadService';
 import { UUIDUtil } from '@reunion/shared';
 import { config } from '../config';
 import {
-  VerificationDocument,
-  VerificationDocumentStatus,
   AccountStatus
 } from '@reunion/shared';
+import { VerificationDocument, VerificationDocumentStatus } from '@prisma/client';
 
 export class VerificationService {
   private fileUploadService: FileUploadService;

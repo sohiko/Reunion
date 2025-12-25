@@ -29,7 +29,8 @@ model User {
   password_hash          String        @db.VarChar(255)
   status                 AccountStatus
   role_id                String        @db.Uuid
-  created_at             DateTime      @default(now()) @updatedAt
+  created_at             DateTime      @default(now())
+  updated_at             DateTime      @updatedAt
   last_login_at          DateTime?     @db.Timestamp
   agreed_terms_version   String?       @db.VarChar(50)
   agreed_privacy_version String?       @db.VarChar(50)
@@ -39,18 +40,22 @@ model User {
   // リレーション
   role                   Role                      @relation(fields: [role_id], references: [id], onDelete: Cascade)
   profile                Profile?
-  verification_documents VerificationDocument[]
-  consent_records        ConsentRecord[]
-  audit_logs             AuditLog[]
-  sent_messages          Message[]                 @relation("MessageSender")
-  received_messages      Message[]                 @relation("MessageRecipient")
-  contact_access_requests_sent   ContactAccessRequest[] @relation("ContactAccessRequestRequester")
-  contact_access_requests_target ContactAccessRequest[] @relation("ContactAccessRequestTarget")
-  contact_access_logs_viewer     ContactAccessLog[]     @relation("ContactAccessLogViewer")
-  contact_access_logs_subject    ContactAccessLog[]     @relation("ContactAccessLogSubject")
-  events_created               Event[]
-  attendances                  Attendance[]
-  coordinator_assignments      CoordinatorAssignment[]
+  verificationDocuments VerificationDocument[]    @relation("verificationUser")
+  verificationReviewed   VerificationDocument[]   @relation("verificationReviewer")
+  consentRecords         ConsentRecord[]
+  auditLogs              AuditLog[]               @relation("auditUser")
+  auditApprovals         AuditLog[]               @relation("auditApprover")
+  sentMessages           Message[]                 @relation("MessageSender")
+  receivedMessages       Message[]                 @relation("MessageRecipient")
+  contactRequestsSent    ContactAccessRequest[]   @relation("ContactAccessRequestRequester")
+  contactRequestsTarget  ContactAccessRequest[]   @relation("ContactAccessRequestTarget")
+  contactLogsViewer      ContactAccessLog[]       @relation("ContactAccessLogViewer")
+  contactLogsSubject     ContactAccessLog[]       @relation("ContactAccessLogSubject")
+  contactLogsGranter     ContactAccessLog[]       @relation("contact_access_granter")
+  eventsCreated          Event[]
+  attendances            Attendance[]
+  coordinatorAssignments CoordinatorAssignment[]  @relation("coordinatorUser")
+  coordinatorAssignmentsAssigned CoordinatorAssignment[] @relation("coordinatorAssigner")
 
   @@map("users")
 }
@@ -88,8 +93,8 @@ model VerificationDocument {
   expires_at         DateTime?                 @db.Timestamp
 
   // リレーション
-  user               User                      @relation(fields: [user_id], references: [id], onDelete: Cascade)
-  reviewer           User?                     @relation(fields: [reviewed_by], references: [id])
+  user               User                      @relation("verificationUser", fields: [user_id], references: [id], onDelete: Cascade)
+  reviewer           User?                     @relation("verificationReviewer", fields: [reviewed_by], references: [id])
 
   @@map("verification_documents")
 }
@@ -128,8 +133,8 @@ model AuditLog {
   created_at        DateTime       @default(now())
 
   // リレーション
-  user              User?          @relation(fields: [user_id], references: [id])
-  approver          User?          @relation(fields: [approved_by], references: [id])
+  user              User?          @relation("auditUser", fields: [user_id], references: [id])
+  approver          User?          @relation("auditApprover", fields: [approved_by], references: [id])
 
   @@map("audit_logs")
 }
@@ -173,7 +178,7 @@ model ContactAccessLog {
   // リレーション
   viewer              User         @relation("ContactAccessLogViewer", fields: [viewer_id], references: [id], onDelete: Cascade)
   subject             User         @relation("ContactAccessLogSubject", fields: [subject_id], references: [id], onDelete: Cascade)
-  granter             User?        @relation(fields: [access_granted_by], references: [id])
+  granter             User?        @relation("contact_access_granter", fields: [access_granted_by], references: [id])
 
   @@map("contact_access_logs")
 }
@@ -247,8 +252,8 @@ model CoordinatorAssignment {
   assigned_at     DateTime @default(now())
 
   // リレーション
-  coordinator     User     @relation(fields: [coordinator_id], references: [id], onDelete: Cascade)
-  assigner        User     @relation(fields: [assigned_by], references: [id])
+  coordinator     User     @relation("coordinatorUser", fields: [coordinator_id], references: [id], onDelete: Cascade)
+  assigner        User     @relation("coordinatorAssigner", fields: [assigned_by], references: [id])
 
   @@unique([coordinator_id, graduation_year])
   @@map("coordinator_assignments")
@@ -264,18 +269,18 @@ enum AccountStatus {
 }
 
 enum AuditActionType {
-  VIEW
-  SEARCH
-  UPDATE
-  DELETE
-  EXPORT
-  LOGIN
-  LOGOUT
-  UPLOAD
-  DOWNLOAD
-  APPROVE
-  REJECT
-  SEND_MESSAGE
+  VIEW @map("VIEW")
+  SEARCH @map("SEARCH")
+  UPDATE @map("UPDATE")
+  DELETE @map("DELETE")
+  EXPORT @map("EXPORT")
+  LOGIN @map("LOGIN")
+  LOGOUT @map("LOGOUT")
+  UPLOAD @map("UPLOAD")
+  DOWNLOAD @map("DOWNLOAD")
+  APPROVE @map("APPROVE")
+  REJECT @map("REJECT")
+  SEND_MESSAGE @map("SEND_MESSAGE")
 }
 
 enum ConsentType {

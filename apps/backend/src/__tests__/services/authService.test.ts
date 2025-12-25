@@ -1,6 +1,6 @@
 import { AuthService } from '../../services/authService';
 import { prisma } from '../../utils/prisma';
-import { PasswordUtil } from '@reunion/shared';
+import { PasswordUtil } from '../../utils/passwordUtil';
 
 describe('AuthService', () => {
   beforeEach(async () => {

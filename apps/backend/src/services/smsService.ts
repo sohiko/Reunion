@@ -95,7 +95,7 @@ export class SMSService {
 
     try {
       // アカウント情報を取得して接続を確認
-      await this.client.api.accounts(config.sms.twilioAccountSid).fetch();
+      await this.client.api.accounts(config.sms.twilioAccountSid!).fetch();
       return true;
     } catch (error) {
       console.error('SMS service health check failed:', error);

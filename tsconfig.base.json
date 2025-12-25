@@ -1,10 +1,8 @@
 {
-  "extends": "../../tsconfig.base.json",
   "compilerOptions": {
     "target": "ES2022",
     "module": "CommonJS",
     "lib": ["ES2022"],
-    "outDir": "./dist",
     "strict": false,
     "esModuleInterop": true,
     "skipLibCheck": true,
@@ -14,12 +12,11 @@
     "allowSyntheticDefaultImports": true,
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
+    "moduleResolution": "node",
     "baseUrl": ".",
     "paths": {
-      "@/*": ["src/*"],
-      "@reunion/shared": ["../../packages/shared/src"]
+      "@reunion/shared": ["packages/shared/src"],
+      "@reunion/shared/*": ["packages/shared/src/*"]
     }
-  },
-  "include": ["src/**/*", "../../packages/shared/src/**/*"],
-  "exclude": ["node_modules", "dist"]
+  }
 }

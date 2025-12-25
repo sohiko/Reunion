@@ -1,16 +1,16 @@
 import { prisma } from '../utils/prisma';
-import { PasswordUtil, UUIDUtil } from '@reunion/shared';
+import { PasswordUtil } from '../utils/passwordUtil';
+import { UUIDUtil } from '@reunion/shared';
 import { JWTUtil } from '../utils/jwt';
 import { config } from '../config';
 import {
-  User,
   UserRole,
-  AccountStatus,
   RegisterRequest,
   LoginRequest,
   AuthTokens,
   ConsentType
 } from '@reunion/shared';
+import { User, AccountStatus } from '@prisma/client';
 
 export class AuthService {
   /**
@@ -56,6 +56,7 @@ export class AuthService {
       },
       include: {
         role: true,
+        profile: true,
       }
     });
 
@@ -77,8 +78,8 @@ export class AuthService {
         user_id: user.id,
         consent_type: ConsentType.TERMS_OF_SERVICE,
         consent_version: '1.0',
-        ip_address,
-        user_agent,
+        ip_address: ipAddress,
+        user_agent: userAgent,
       }
     });
 

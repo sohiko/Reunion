@@ -48,7 +48,7 @@ export class EventController {
           success: false,
           error: 'Event not found or access denied'
         };
-        return res.status(404).json(response);
+        res.status(404).json(response);
       }
 
       const response: ApiResponse = {
@@ -186,7 +186,7 @@ export class EventController {
           success: false,
           error: 'Invalid attendance status'
         };
-        return res.status(400).json(response);
+        res.status(400).json(response);
       }
 
       await eventService.registerAttendance(eventId, userId, status, notes);

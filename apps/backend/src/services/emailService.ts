@@ -16,7 +16,7 @@ export class EmailService {
   constructor() {
     // プライマリ（SendGrid）
     if (config.email.sendgridApiKey) {
-      this.transporter = nodemailer.createTransporter({
+      this.transporter = nodemailer.createTransport({
         host: 'smtp.sendgrid.net',
         port: 587,
         secure: false,
@@ -28,7 +28,7 @@ export class EmailService {
     }
     // フォールバック（Mailgun）
     else if (config.email.mailgunApiKey) {
-      this.fallbackTransporter = nodemailer.createTransporter({
+      this.fallbackTransporter = nodemailer.createTransport({
         host: 'smtp.mailgun.org',
         port: 587,
         secure: false,
@@ -41,7 +41,7 @@ export class EmailService {
     }
     // 最終フォールバック（Gmail SMTP）
     else {
-      this.transporter = nodemailer.createTransporter({
+      this.transporter = nodemailer.createTransport({
         service: 'gmail',
         auth: {
           user: process.env.GMAIL_USER,

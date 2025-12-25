@@ -2,4 +2,5 @@
 export * from './types';
 
 // ユーティリティのエクスポート
-export * from './utils';
+// PasswordUtilはサーバーサイドのみで使用
+export { UUIDUtil, EncryptionUtil } from './utils';

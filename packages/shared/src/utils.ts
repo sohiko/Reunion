@@ -54,26 +54,6 @@ export class EncryptionUtil {
   }
 }
 
-// パスワードユーティリティ
-export class PasswordUtil {
-  private static readonly SALT_ROUNDS = 12;
-
-  /**
-   * パスワードハッシュ化
-   */
-  static async hash(password: string): Promise<string> {
-    const bcrypt = await import('bcrypt');
-    return bcrypt.hash(password, this.SALT_ROUNDS);
-  }
-
-  /**
-   * パスワード検証
-   */
-  static async verify(password: string, hash: string): Promise<boolean> {
-    const bcrypt = await import('bcrypt');
-    return bcrypt.compare(password, hash);
-  }
-}
 
 // UUID生成ユーティリティ
 export class UUIDUtil {

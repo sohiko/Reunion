@@ -3,6 +3,7 @@ import { BackupService } from './backupService';
 import { VerificationService } from './verificationService';
 import { ContactAccessService } from './contactAccessService';
 import { AuditService } from './auditService';
+import { AuditActionType } from '@reunion/shared';
 
 export class JobScheduler {
   private backupService: BackupService;
@@ -30,7 +31,7 @@ export class JobScheduler {
         // 監査ログに記録
         await AuditService.log(
           undefined,
-          'EXPORT',
+          AuditActionType.EXPORT,
           'DATABASE',
           undefined,
           {
@@ -49,7 +50,7 @@ export class JobScheduler {
         // エラーを監査ログに記録
         await AuditService.log(
           undefined,
-          'EXPORT',
+          AuditActionType.EXPORT,
           'DATABASE',
           undefined,
           {
@@ -81,7 +82,7 @@ export class JobScheduler {
 
         await AuditService.log(
           undefined,
-          'DELETE',
+          AuditActionType.DELETE,
           'BACKUP',
           undefined,
           {
@@ -110,7 +111,7 @@ export class JobScheduler {
         if (expiredDocuments > 0 || expiredRequests > 0) {
           await AuditService.log(
             undefined,
-            'DELETE',
+            AuditActionType.DELETE,
             'EXPIRED_DATA',
             undefined,
             {
