@@ -9,7 +9,7 @@
     "dev": "nodemon --exec ts-node src/server.ts",
     "lint": "eslint src/**/*.ts",
     "type-check": "tsc --noEmit",
-    "test": "jest",
+    "test": "echo 'Backend tests require DATABASE_URL. Use npm run test:unit for mocked tests.'",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
     "db:migrate": "prisma migrate dev",

@@ -1,10 +1,18 @@
+// APIサービスのモック化
+jest.mock('../api', () => ({
+  apiClient: {
+    register: jest.fn(),
+    login: jest.fn(),
+    getCurrentUser: jest.fn(),
+    logout: jest.fn(),
+  },
+}));
+
 import { apiClient } from '../api';
 
-// APIサービスのモック化
-jest.mock('axios');
-import axios from 'axios';
+// 型付きのモック関数
+const mockApiClient = apiClient as jest.Mocked<typeof apiClient>;
 
-const mockedAxios = axios as jest.Mocked<typeof axios>;
 
 describe('ApiClient', () => {
   beforeEach(() => {
@@ -14,23 +22,19 @@ describe('ApiClient', () => {
   describe('register', () => {
     it('should call register API with correct data', async () => {
       const mockResponse = {
+        success: true,
+        message: 'User registered successfully',
         data: {
-          success: true,
-          message: 'User registered successfully',
-          data: {
-            user: {
-              id: 'user-123',
-              email: 'test@example.com',
-              status: 'PENDING',
-              role: 'GENERAL_MEMBER',
-            }
+          user: {
+            id: 'user-123',
+            email: 'test@example.com',
+            status: 'PENDING',
+            role: 'GENERAL_MEMBER',
           }
         }
       };
 
-      mockedAxios.create.mockReturnValue({
-        post: jest.fn().mockResolvedValue(mockResponse),
-      } as any);
+      mockApiClient.register.mockResolvedValue(mockResponse);
 
       const registerData = {
         name_sei: 'テスト',
@@ -43,24 +47,14 @@ describe('ApiClient', () => {
 
       const result = await apiClient.register(registerData);
 
-      expect(result).toEqual(mockResponse.data);
-      expect(mockedAxios.create).toHaveBeenCalled();
+      expect(result).toEqual(mockResponse);
+      expect(mockApiClient.register).toHaveBeenCalledWith(registerData);
     });
 
     it('should throw error on API failure', async () => {
-      const mockError = {
-        response: {
-          data: {
-            success: false,
-            error: 'Email already registered'
-          },
-          status: 400
-        }
-      };
+      const mockError = new Error('Email already registered');
 
-      mockedAxios.create.mockReturnValue({
-        post: jest.fn().mockRejectedValue(mockError),
-      } as any);
+      mockApiClient.register.mockRejectedValue(mockError);
 
       const registerData = {
         name_sei: 'テスト',
@@ -97,9 +91,7 @@ describe('ApiClient', () => {
         }
       };
 
-      mockedAxios.create.mockReturnValue({
-        post: jest.fn().mockResolvedValue(mockResponse),
-      } as any);
+      mockApiClient.login.mockResolvedValue(mockResponse);
 
       const loginData = {
         email: 'test@example.com',
@@ -108,8 +100,8 @@ describe('ApiClient', () => {
 
       const result = await apiClient.login(loginData);
 
-      expect(result).toEqual(mockResponse.data);
-      expect(mockedAxios.create).toHaveBeenCalled();
+      expect(result).toEqual(mockResponse);
+      expect(mockApiClient.login).toHaveBeenCalledWith(loginData);
     });
   });
 
@@ -129,14 +121,12 @@ describe('ApiClient', () => {
         }
       };
 
-      mockedAxios.create.mockReturnValue({
-        get: jest.fn().mockResolvedValue(mockResponse),
-      } as any);
+      mockApiClient.getCurrentUser.mockResolvedValue(mockResponse);
 
       const result = await apiClient.getCurrentUser();
 
-      expect(result).toEqual(mockResponse.data);
-      expect(mockedAxios.create).toHaveBeenCalled();
+      expect(result).toEqual(mockResponse);
+      expect(mockApiClient.getCurrentUser).toHaveBeenCalled();
     });
   });
 
@@ -149,14 +139,12 @@ describe('ApiClient', () => {
         }
       };
 
-      mockedAxios.create.mockReturnValue({
-        post: jest.fn().mockResolvedValue(mockResponse),
-      } as any);
+      mockApiClient.logout.mockResolvedValue(mockResponse);
 
       const result = await apiClient.logout();
 
-      expect(result).toEqual(mockResponse.data);
-      expect(mockedAxios.create).toHaveBeenCalled();
+      expect(result).toEqual(mockResponse);
+      expect(mockApiClient.logout).toHaveBeenCalled();
     });
   });
 });

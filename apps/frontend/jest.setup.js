@@ -1,5 +1,7 @@
 import '@testing-library/jest-dom';
 
+// axiosのモックは各テストファイルで個別に設定
+
 // React Queryのテスト設定
 import { QueryClient } from 'react-query';
 global.queryClient = new QueryClient({

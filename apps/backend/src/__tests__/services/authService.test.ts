@@ -1,17 +1,42 @@
 import { AuthService } from '../../services/authService';
 import { prisma } from '../../utils/prisma';
+
+// Prismaをモック化
+jest.mock('../../utils/prisma', () => ({
+  prisma: {
+    user: {
+      create: jest.fn(),
+      findUnique: jest.fn(),
+      update: jest.fn(),
+    },
+    profile: {
+      create: jest.fn(),
+    },
+    consentRecord: {
+      create: jest.fn(),
+    },
+    role: {
+      findUnique: jest.fn(),
+    },
+    $disconnect: jest.fn(),
+  },
+}));
+
+// PasswordUtilをモック化
+jest.mock('../../utils/passwordUtil', () => ({
+  PasswordUtil: {
+    hash: jest.fn(),
+    verify: jest.fn(),
+    isValidPassword: jest.fn(),
+  },
+}));
+
 import { PasswordUtil } from '../../utils/passwordUtil';
 
 describe('AuthService', () => {
-  beforeEach(async () => {
-    // テストデータのクリーンアップ
-    await prisma.consentRecord.deleteMany();
-    await prisma.profile.deleteMany();
-    await prisma.user.deleteMany();
-  });
-
-  afterAll(async () => {
-    await prisma.$disconnect();
+  beforeEach(() => {
+    // モックをクリア
+    jest.clearAllMocks();
   });
 
   describe('register', () => {
@@ -28,20 +53,39 @@ describe('AuthService', () => {
       const ipAddress = '127.0.0.1';
       const userAgent = 'Test Agent';
 
+      // モックの戻り値を設定
+      const mockRole = { id: 'role-1', name: 'GENERAL_MEMBER' };
+      const mockUser = {
+        id: 'user-1',
+        email: registerData.email,
+        status: 'PENDING',
+        role: mockRole,
+        profile: null,
+      };
+      const mockProfile = {
+        id: mockUser.id,
+        name_sei: registerData.name_sei,
+        name_mei: registerData.name_mei,
+        graduation_year: registerData.graduation_year,
+        student_number: registerData.student_number,
+      };
+
+      (prisma.role.findUnique as jest.Mock).mockResolvedValue(mockRole);
+      (PasswordUtil.isValidPassword as jest.Mock).mockReturnValue(true);
+      (PasswordUtil.hash as jest.Mock).mockResolvedValue('hashed-password');
+      (prisma.user.create as jest.Mock).mockResolvedValue(mockUser);
+      (prisma.profile.create as jest.Mock).mockResolvedValue(mockProfile);
+      (prisma.consentRecord.create as jest.Mock).mockResolvedValue({});
+
       const user = await AuthService.register(registerData, ipAddress, userAgent);
 
       expect(user).toBeDefined();
       expect(user.email).toBe(registerData.email);
       expect(user.status).toBe('PENDING');
-
-      // プロファイルが作成されていることを確認
-      const profile = await prisma.profile.findUnique({
-        where: { id: user.id }
-      });
-      expect(profile).toBeDefined();
-      expect(profile?.name_sei).toBe(registerData.name_sei);
-      expect(profile?.name_mei).toBe(registerData.name_mei);
-      expect(profile?.graduation_year).toBe(registerData.graduation_year);
+      expect(prisma.role.findUnique).toHaveBeenCalledWith({ where: { name: 'GENERAL_MEMBER' } });
+      expect(PasswordUtil.hash).toHaveBeenCalledWith(registerData.password);
+      expect(prisma.user.create).toHaveBeenCalled();
+      expect(prisma.profile.create).toHaveBeenCalled();
     });
 
     it('should throw error for duplicate email', async () => {

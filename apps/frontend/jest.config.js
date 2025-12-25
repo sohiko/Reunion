@@ -8,7 +8,7 @@ const createJestConfig = nextJest({
 // Jestに渡す設定を追加
 const customJestConfig = {
   setupFilesAfterEnv: ['<rootDir>/jest.setup.js'],
-  moduleNameMapping: {
+  moduleNameMapper: {
     // CSSモジュールのモック
     '\\.(css|less|scss|sass)$': 'identity-obj-proxy',
   },

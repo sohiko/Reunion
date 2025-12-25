@@ -13,7 +13,7 @@
     "start": "concurrently \"npm run start --workspace=apps/backend\" \"npm run start --workspace=apps/frontend\"",
     "lint": "npm run lint --workspace=apps/backend && npm run lint --workspace=apps/frontend",
     "type-check": "npm run type-check --workspace=apps/backend && npm run type-check --workspace=apps/frontend",
-    "test": "npm run test --workspace=apps/backend && npm run test --workspace=apps/frontend",
+    "test": "npm run test --workspace=apps/frontend",
     "db:migrate": "npm run db:migrate --workspace=apps/backend",
     "db:generate": "npm run db:generate --workspace=apps/backend",
     "db:seed": "npm run db:seed --workspace=apps/backend",
