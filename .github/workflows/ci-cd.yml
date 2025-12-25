@@ -1,0 +1,207 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+env:
+  NODE_VERSION: '18'
+
+jobs:
+  # テストとビルド
+  test-and-build:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        app: [backend, frontend]
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
+        cache-dependency-path: |
+          package-lock.json
+          apps/${{ matrix.app }}/package-lock.json
+
+    - name: Install dependencies
+      run: npm ci
+
+    - name: Install shared dependencies
+      run: npm run build --workspace=packages/shared
+
+    - name: Lint
+      run: npm run lint --workspace=apps/${{ matrix.app }}
+
+    - name: Type check
+      run: npm run type-check --workspace=apps/${{ matrix.app }}
+
+    - name: Run tests
+      run: npm run test:coverage --workspace=apps/${{ matrix.app }}
+
+    - name: Build
+      run: npm run build --workspace=apps/${{ matrix.app }}
+
+    - name: Upload coverage reports
+      uses: codecov/codecov-action@v3
+      with:
+        file: ./apps/${{ matrix.app }}/coverage/lcov.info
+        flags: ${{ matrix.app }}
+        name: ${{ matrix.app }} coverage
+
+  # セキュリティスキャン
+  security-scan:
+    runs-on: ubuntu-latest
+    needs: test-and-build
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Run Trivy vulnerability scanner
+      uses: aquasecurity/trivy-action@master
+      with:
+        scan-type: 'fs'
+        scan-ref: '.'
+        format: 'sarif'
+        output: 'trivy-results.sarif'
+
+    - name: Upload Trivy scan results
+      uses: github/codeql-action/upload-sarif@v2
+      if: always()
+      with:
+        sarif_file: 'trivy-results.sarif'
+
+  # バックエンドデプロイ（Render）
+  deploy-backend:
+    runs-on: ubuntu-latest
+    needs: [test-and-build, security-scan]
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+
+    - name: Install dependencies
+      run: npm ci
+
+    - name: Build shared package
+      run: npm run build --workspace=packages/shared
+
+    - name: Build backend
+      run: npm run build --workspace=apps/backend
+
+    - name: Deploy to Render
+      run: |
+        curl -X POST \
+          -H "Authorization: Bearer ${{ secrets.RENDER_API_KEY }}" \
+          -H "Content-Type: application/json" \
+          https://api.render.com/v1/services/${{ secrets.RENDER_SERVICE_ID }}/deploys
+
+  # フロントエンドデプロイ（Vercel）
+  deploy-frontend:
+    runs-on: ubuntu-latest
+    needs: [test-and-build, security-scan]
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+
+    - name: Install dependencies
+      run: npm ci
+
+    - name: Build shared package
+      run: npm run build --workspace=packages/shared
+
+    - name: Build frontend
+      run: npm run build --workspace=apps/frontend
+
+    - name: Deploy to Vercel
+      uses: amondnet/vercel-action@v25
+      with:
+        vercel-token: ${{ secrets.VERCEL_TOKEN }}
+        vercel-args: '--prod'
+        vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
+        vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
+        working-directory: ./apps/frontend
+
+  # E2Eテスト
+  e2e-test:
+    runs-on: ubuntu-latest
+    needs: [deploy-backend, deploy-frontend]
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+
+    - name: Install dependencies
+      run: npm ci
+
+    - name: Run E2E tests
+      run: npm run test:e2e
+      env:
+        NEXT_PUBLIC_API_URL: ${{ secrets.NEXT_PUBLIC_API_URL }}
+        TEST_USER_EMAIL: ${{ secrets.TEST_USER_EMAIL }}
+        TEST_USER_PASSWORD: ${{ secrets.TEST_USER_PASSWORD }}
+
+  # リリースノート生成
+  release-notes:
+    runs-on: ubuntu-latest
+    needs: [e2e-test]
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+      with:
+        fetch-depth: 0
+
+    - name: Generate release notes
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: v${{ github.run_number }}
+        release_name: Release v${{ github.run_number }}
+        body: |
+          ## What's Changed
+
+          ### Backend
+          - [List of backend changes]
+
+          ### Frontend
+          - [List of frontend changes]
+
+          ### Infrastructure
+          - [List of infrastructure changes]
+
+          ## Deployment
+          - Backend deployed to Render
+          - Frontend deployed to Vercel
+          - All tests passed
+        draft: false
+        prerelease: false

@@ -1,0 +1,30 @@
+{
+  "name": "reunion-app",
+  "version": "1.0.0",
+  "description": "同窓会サポートWebアプリケーション",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "concurrently \"npm run dev --workspace=apps/backend\" \"npm run dev --workspace=apps/frontend\"",
+    "build": "npm run build --workspace=apps/backend && npm run build --workspace=apps/frontend",
+    "start": "concurrently \"npm run start --workspace=apps/backend\" \"npm run start --workspace=apps/frontend\"",
+    "lint": "npm run lint --workspace=apps/backend && npm run lint --workspace=apps/frontend",
+    "test": "npm run test --workspace=apps/backend && npm run test --workspace=apps/frontend",
+    "db:migrate": "npm run db:migrate --workspace=apps/backend",
+    "db:generate": "npm run db:generate --workspace=apps/backend",
+    "db:seed": "npm run db:seed --workspace=apps/backend",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "prepare": "npm run build --workspace=packages/shared"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.0",
+    "typescript": "^5.0.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

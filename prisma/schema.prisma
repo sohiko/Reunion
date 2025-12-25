@@ -1,0 +1,355 @@
+// Prisma schema file for Reunion app
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ロールテーブル
+model Role {
+  id          String   @id @default(uuid()) @db.Uuid
+  name        String   @unique @db.VarChar(50)
+  description String?  @db.Text
+  permissions Json     @default("{}")
+  created_at  DateTime @default(now()) @updatedAt
+
+  // リレーション
+  users User[]
+
+  @@map("roles")
+}
+
+// ユーザーテーブル
+model User {
+  id                     String        @id @default(uuid()) @db.Uuid
+  email                  String        @unique @db.VarChar(255)
+  password_hash          String        @db.VarChar(255)
+  status                 AccountStatus
+  role_id                String        @db.Uuid
+  created_at             DateTime      @default(now()) @updatedAt
+  last_login_at          DateTime?     @db.Timestamp
+  agreed_terms_version   String?       @db.VarChar(50)
+  agreed_privacy_version String?       @db.VarChar(50)
+  agreed_terms_at        DateTime?     @db.Timestamp
+  agreed_privacy_at      DateTime?     @db.Timestamp
+
+  // リレーション
+  role                   Role                      @relation(fields: [role_id], references: [id], onDelete: Cascade)
+  profile                Profile?
+  verification_documents VerificationDocument[]
+  consent_records        ConsentRecord[]
+  audit_logs             AuditLog[]
+  sent_messages          Message[]                 @relation("MessageSender")
+  received_messages      Message[]                 @relation("MessageRecipient")
+  contact_access_requests_sent   ContactAccessRequest[] @relation("ContactAccessRequestRequester")
+  contact_access_requests_target ContactAccessRequest[] @relation("ContactAccessRequestTarget")
+  contact_access_logs_viewer     ContactAccessLog[]     @relation("ContactAccessLogViewer")
+  contact_access_logs_subject    ContactAccessLog[]     @relation("ContactAccessLogSubject")
+  events_created               Event[]
+  attendances                  Attendance[]
+  coordinator_assignments      CoordinatorAssignment[]
+
+  @@map("users")
+}
+
+// ユーザープロファイルテーブル
+model Profile {
+  id              String         @id @db.Uuid
+  name_sei        String         @db.VarChar(100)
+  name_mei        String         @db.VarChar(100)
+  maiden_name     String?        @db.VarChar(100)
+  graduation_year Int
+  student_number  String?        @db.VarChar(50)
+  address         String?        @db.Text
+  email           String?        @db.VarChar(255)
+  phone_number    String?        @db.VarChar(50)
+  display_settings Json           @default("{\"is_name_visible\":true,\"is_searchable\":true,\"display_scope\":\"public\"}")
+
+  // リレーション
+  user User @relation(fields: [id], references: [id], onDelete: Cascade)
+
+  @@map("profiles")
+}
+
+// 身分証明書テーブル
+model VerificationDocument {
+  id                 String                    @id @default(uuid()) @db.Uuid
+  user_id            String                    @db.Uuid
+  file_path          String                    @db.VarChar(500)
+  original_filename  String                    @db.VarChar(255)
+  status             VerificationDocumentStatus
+  uploaded_at        DateTime                  @default(now())
+  reviewed_at        DateTime?                 @db.Timestamp
+  reviewed_by        String?                   @db.Uuid
+  reviewer_notes     String?                   @db.Text
+  expires_at         DateTime?                 @db.Timestamp
+
+  // リレーション
+  user               User                      @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  reviewer           User?                     @relation(fields: [reviewed_by], references: [id])
+
+  @@map("verification_documents")
+}
+
+// 同意履歴テーブル
+model ConsentRecord {
+  id                    String      @id @default(uuid()) @db.Uuid
+  user_id               String      @db.Uuid
+  consent_type          ConsentType
+  consent_version       String      @db.VarChar(50)
+  consent_given_at      DateTime    @default(now()) @db.Timestamp
+  ip_address            String      @db.VarChar(45)
+  user_agent            String      @db.Text
+  consent_withdrawn_at  DateTime?   @db.Timestamp
+
+  // リレーション
+  user User @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@map("consent_records")
+}
+
+// 監査ログテーブル
+model AuditLog {
+  id                String         @id @default(uuid()) @db.Uuid
+  user_id           String?        @db.Uuid
+  action            AuditActionType
+  resource_type     String         @db.VarChar(50)
+  resource_id       String?        @db.VarChar(255)
+  details           Json?
+  ip_address        String         @db.VarChar(45)
+  user_agent        String         @db.Text
+  requires_approval Boolean        @default(false)
+  approval_status   ApprovalStatus @default(NOT_REQUIRED)
+  approved_by       String?        @db.Uuid
+  approved_at       DateTime?      @db.Timestamp
+  created_at        DateTime       @default(now())
+
+  // リレーション
+  user              User?          @relation(fields: [user_id], references: [id])
+  approver          User?          @relation(fields: [approved_by], references: [id])
+
+  @@map("audit_logs")
+}
+
+// 連絡先アクセスリクエストテーブル
+model ContactAccessRequest {
+  id                       String               @id @default(uuid()) @db.Uuid
+  requester_id             String               @db.Uuid
+  target_id                String               @db.Uuid
+  status                   ContactAccessStatus
+  requested_contact_types  ContactType[]
+  reason                   String               @db.Text
+  respondent_notified_at   DateTime?            @db.Timestamp
+  respondent_response_at   DateTime?            @db.Timestamp
+  notify_on_reject         Boolean              @default(true)
+  block_future_requests    Boolean              @default(false)
+  expires_at               DateTime             @db.Timestamp
+  created_at               DateTime             @default(now())
+
+  // リレーション
+  requester                User                 @relation("ContactAccessRequestRequester", fields: [requester_id], references: [id], onDelete: Cascade)
+  target                   User                 @relation("ContactAccessRequestTarget", fields: [target_id], references: [id], onDelete: Cascade)
+
+  @@map("contact_access_requests")
+}
+
+// 連絡先アクセスログテーブル
+model ContactAccessLog {
+  id                  String       @id @default(uuid()) @db.Uuid
+  viewer_id           String       @db.Uuid
+  subject_id          String       @db.Uuid
+  access_type         AccessType
+  contact_type        ContactType
+  access_method       AccessMethod
+  details             Json?
+  access_granted_by   String?      @db.Uuid
+  ip_address          String       @db.VarChar(45)
+  user_agent          String       @db.Text
+  created_at          DateTime     @default(now())
+
+  // リレーション
+  viewer              User         @relation("ContactAccessLogViewer", fields: [viewer_id], references: [id], onDelete: Cascade)
+  subject             User         @relation("ContactAccessLogSubject", fields: [subject_id], references: [id], onDelete: Cascade)
+  granter             User?        @relation(fields: [access_granted_by], references: [id])
+
+  @@map("contact_access_logs")
+}
+
+// イベントテーブル
+model Event {
+  id                       String      @id @default(uuid()) @db.Uuid
+  title                    String      @db.VarChar(200)
+  description              String?     @db.Text
+  event_type               EventType
+  event_date               DateTime    @db.Timestamp
+  location                 String?     @db.Text
+  target_graduation_years  Int[]
+  is_all_graduates         Boolean     @default(false)
+  status                   EventStatus @default(SCHEDULED)
+  created_by               String      @db.Uuid
+  created_at               DateTime    @default(now()) @updatedAt
+
+  // リレーション
+  creator                  User        @relation(fields: [created_by], references: [id])
+  attendances              Attendance[]
+
+  @@map("events")
+}
+
+// 出欠テーブル
+model Attendance {
+  id                String           @id @default(uuid()) @db.Uuid
+  event_id          String           @db.Uuid
+  user_id           String           @db.Uuid
+  status            AttendanceStatus @default(PENDING)
+  additional_notes  String?          @db.Text
+  responded_at      DateTime?        @db.Timestamp
+  created_at        DateTime         @default(now()) @updatedAt
+
+  // リレーション
+  event             Event            @relation(fields: [event_id], references: [id], onDelete: Cascade)
+  user              User             @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@unique([event_id, user_id])
+  @@map("attendances")
+}
+
+// メッセージテーブル
+model Message {
+  id                   String       @id @default(uuid()) @db.Uuid
+  sender_id            String       @db.Uuid
+  recipient_id         String       @db.Uuid
+  conversation_id      String?      @db.VarChar(50)
+  content              String       @db.Text
+  is_read              Boolean      @default(false)
+  read_at              DateTime?    @db.Timestamp
+  message_type         MessageType  @default(INDIVIDUAL)
+  sender_deleted_at    DateTime?    @db.Timestamp
+  recipient_deleted_at DateTime?    @db.Timestamp
+  created_at           DateTime     @default(now())
+
+  // リレーション
+  sender               User         @relation("MessageSender", fields: [sender_id], references: [id])
+  recipient            User         @relation("MessageRecipient", fields: [recipient_id], references: [id])
+
+  @@map("messages")
+}
+
+// 幹事担当学年テーブル
+model CoordinatorAssignment {
+  id              String   @id @default(uuid()) @db.Uuid
+  coordinator_id  String   @db.Uuid
+  graduation_year Int
+  assigned_by     String   @db.Uuid
+  assigned_at     DateTime @default(now())
+
+  // リレーション
+  coordinator     User     @relation(fields: [coordinator_id], references: [id], onDelete: Cascade)
+  assigner        User     @relation(fields: [assigned_by], references: [id])
+
+  @@unique([coordinator_id, graduation_year])
+  @@map("coordinator_assignments")
+}
+
+// カスタム列挙型定義
+enum AccountStatus {
+  PENDING
+  ACTIVE
+  SUSPENDED
+  DELETED
+  PENDING_DELETION
+}
+
+enum AuditActionType {
+  VIEW
+  SEARCH
+  UPDATE
+  DELETE
+  EXPORT
+  LOGIN
+  LOGOUT
+  UPLOAD
+  DOWNLOAD
+  APPROVE
+  REJECT
+  SEND_MESSAGE
+}
+
+enum ConsentType {
+  TERMS_OF_SERVICE
+  PRIVACY_POLICY
+  DATA_PROCESSING
+  THIRD_PARTY_SHARING
+}
+
+enum ContactAccessStatus {
+  PENDING
+  PENDING_APPROVAL
+  APPROVED
+  REJECTED
+  EXPIRED
+  CANCELLED
+}
+
+enum EventType {
+  REUNION
+  MEETING
+  ANNOUNCEMENT
+}
+
+enum EventStatus {
+  SCHEDULED
+  PUBLISHED
+  CANCELLED
+  COMPLETED
+  ARCHIVED
+}
+
+enum AttendanceStatus {
+  PENDING
+  ATTENDING
+  NOT_ATTENDING
+  WAITLISTED
+}
+
+enum MessageType {
+  INDIVIDUAL
+  GROUP
+  ANNOUNCEMENT
+}
+
+enum ApprovalStatus {
+  APPROVED
+  PENDING
+  REJECTED
+  NOT_REQUIRED
+}
+
+enum VerificationDocumentStatus {
+  UPLOADED
+  PENDING_REVIEW
+  APPROVED
+  REJECTED
+  DELETED
+}
+
+enum AccessType {
+  DIRECT_VIEW
+  EMAIL_SENT
+  LABEL_GENERATED
+}
+
+enum AccessMethod {
+  WEB_VIEW
+  DOWNLOAD
+  EXPORT
+}
+
+enum ContactType {
+  EMAIL
+  PHONE
+  ADDRESS
+}
