@@ -2,7 +2,6 @@ import { prisma } from '../utils/prisma';
 import { PasswordUtil } from '../utils/passwordUtil';
 import { UUIDUtil } from '@reunion/shared';
 import { JWTUtil } from '../utils/jwt';
-import { config } from '../config';
 import {
   UserRole,
   RegisterRequest,
@@ -89,7 +88,7 @@ export class AuthService {
   /**
    * ログイン
    */
-  static async login(loginData: LoginRequest, ipAddress: string, userAgent: string): Promise<AuthTokens & { user: User }> {
+  static async login(loginData: LoginRequest, _ipAddress: string, _userAgent: string): Promise<AuthTokens & { user: User }> {
     const { email, password } = loginData;
 
     // ユーザーの取得

@@ -1,10 +1,7 @@
 import { prisma } from '../utils/prisma';
 import { EmailService } from './emailService';
 import { UUIDUtil } from '@reunion/shared';
-import {
-  ContactType,
-  UserRole
-} from '@reunion/shared';
+import { ContactType } from '@reunion/shared';
 import { ContactAccessRequest, ContactAccessStatus } from '@prisma/client';
 
 export class ContactAccessService {

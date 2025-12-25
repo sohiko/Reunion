@@ -1,8 +1,6 @@
 import { Request, Response } from 'express';
 import { AuthService } from '../services/authService';
 import { LoginRequest, RegisterRequest, ApiResponse } from '@reunion/shared';
-import { auditLog } from '../middleware/audit';
-import { AuditActionType } from '@reunion/shared';
 
 export class AuthController {
   /**

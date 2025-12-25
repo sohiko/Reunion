@@ -1,8 +1,6 @@
 import { Request, Response } from 'express';
 import { EventService, CreateEventData, UpdateEventData } from '../services/eventService';
 import { ApiResponse, AttendanceStatus, EventStatus } from '@reunion/shared';
-import { auditLog } from '../middleware/audit';
-import { AuditActionType } from '@reunion/shared';
 
 const eventService = new EventService();
 
@@ -237,7 +235,6 @@ export class EventController {
   static async sendEventNotification(req: Request, res: Response): Promise<void> {
     try {
       const { eventId } = req.params;
-      const requesterId = req.user!.user_id;
 
       // TODO: イベント作成者のみ許可する権限チェックを追加
 

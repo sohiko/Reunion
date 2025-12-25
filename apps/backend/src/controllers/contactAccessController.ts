@@ -1,8 +1,6 @@
 import { Request, Response } from 'express';
 import { ContactAccessService } from '../services/contactAccessService';
-import { ApiResponse, ContactType } from '@reunion/shared';
-import { auditLog } from '../middleware/audit';
-import { AuditActionType } from '@reunion/shared';
+import { ApiResponse } from '@reunion/shared';
 
 const contactAccessService = new ContactAccessService();
 

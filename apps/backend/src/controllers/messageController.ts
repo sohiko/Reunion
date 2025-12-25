@@ -1,8 +1,6 @@
 import { Request, Response } from 'express';
 import { MessageService, CreateMessageData } from '../services/messageService';
 import { ApiResponse, MessageType } from '@reunion/shared';
-import { auditLog } from '../middleware/audit';
-import { AuditActionType } from '@reunion/shared';
 
 const messageService = new MessageService();
 

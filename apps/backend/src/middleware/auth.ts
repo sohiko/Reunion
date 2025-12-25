@@ -4,12 +4,10 @@ import { AuthService } from '../services/authService';
 import { UserRole, JWTPayload } from '@reunion/shared';
 
 // リクエストオブジェクトの拡張
-declare global {
-  namespace Express {
-    interface Request {
-      user?: JWTPayload;
-      userDetails?: any;
-    }
+declare module 'express-serve-static-core' {
+  interface Request {
+    user?: JWTPayload;
+    userDetails?: any;
   }
 }
 

@@ -457,7 +457,7 @@ export class MessageService {
       throw new Error('Sender not found');
     }
 
-    let where: any = {
+    const where: any = {
       status: 'ACTIVE',
     };
 

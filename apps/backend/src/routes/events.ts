@@ -1,8 +1,8 @@
 import { Router } from 'express';
 import { EventController } from '../controllers/eventController';
-import { authenticate, authorize, requireCoordinatorOrAbove } from '../middleware/auth';
+import { authenticate, requireCoordinatorOrAbove } from '../middleware/auth';
 import { auditLog } from '../middleware/audit';
-import { UserRole, AuditActionType } from '@reunion/shared';
+import { AuditActionType } from '@reunion/shared';
 
 const router = Router();
 
@@ -10,7 +10,7 @@ const router = Router();
 router.post('/',
   authenticate,
   requireCoordinatorOrAbove,
-  auditLog(AuditActionType.UPDATE, 'EVENT'),
+  auditLog(AuditActionType.UPDATE, 'event'),
   EventController.createEvent
 );
 
@@ -30,7 +30,7 @@ router.get('/:eventId',
 router.put('/:eventId',
   authenticate,
   requireCoordinatorOrAbove,
-  auditLog(AuditActionType.UPDATE, 'EVENT'),
+  auditLog(AuditActionType.UPDATE, 'event'),
   EventController.updateEvent
 );
 
@@ -38,14 +38,14 @@ router.put('/:eventId',
 router.delete('/:eventId',
   authenticate,
   requireCoordinatorOrAbove,
-  auditLog(AuditActionType.DELETE, 'EVENT'),
+  auditLog(AuditActionType.DELETE, 'event'),
   EventController.deleteEvent
 );
 
 // 出欠登録
 router.post('/:eventId/attendance',
   authenticate,
-  auditLog(AuditActionType.UPDATE, 'ATTENDANCE'),
+  auditLog(AuditActionType.UPDATE, 'attendance'),
   EventController.registerAttendance
 );
 
@@ -60,7 +60,7 @@ router.get('/:eventId/attendance',
 router.post('/:eventId/notify',
   authenticate,
   requireCoordinatorOrAbove,
-  auditLog(AuditActionType.SEND_MESSAGE, 'EVENT'),
+  auditLog(AuditActionType.SEND_MESSAGE, 'event'),
   EventController.sendEventNotification
 );
 
@@ -68,7 +68,7 @@ router.post('/:eventId/notify',
 router.post('/:eventId/publish',
   authenticate,
   requireCoordinatorOrAbove,
-  auditLog(AuditActionType.UPDATE, 'EVENT'),
+  auditLog(AuditActionType.UPDATE, 'event'),
   EventController.publishEvent
 );
 
@@ -76,7 +76,7 @@ router.post('/:eventId/publish',
 router.post('/:eventId/cancel',
   authenticate,
   requireCoordinatorOrAbove,
-  auditLog(AuditActionType.UPDATE, 'EVENT'),
+  auditLog(AuditActionType.UPDATE, 'event'),
   EventController.cancelEvent
 );
 

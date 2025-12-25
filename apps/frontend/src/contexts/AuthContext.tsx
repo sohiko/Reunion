@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useReducer, useEffect, ReactNode } from 'react';
-import { User, UserRole } from '@reunion/shared';
+import { User } from '@reunion/shared';
 import { apiClient } from '../services/api';
 
 interface AuthState {
@@ -162,14 +162,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   };
 
   const changePassword = async (currentPassword: string, newPassword: string) => {
-    try {
-      await apiClient.changePassword({
-        current_password: currentPassword,
-        new_password: newPassword,
-      });
-    } catch (error) {
-      throw error;
-    }
+    await apiClient.changePassword({
+      current_password: currentPassword,
+      new_password: newPassword,
+    });
   };
 
   const clearError = () => {

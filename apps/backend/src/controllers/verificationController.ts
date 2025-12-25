@@ -1,10 +1,7 @@
 import { Request, Response } from 'express';
 import multer from 'multer';
 import { VerificationService } from '../services/verificationService';
-import { AuditService } from '../services/auditService';
 import { ApiResponse } from '@reunion/shared';
-import { auditLog } from '../middleware/audit';
-import { AuditActionType } from '@reunion/shared';
 
 const verificationService = new VerificationService();
 

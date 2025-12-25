@@ -150,7 +150,7 @@ export class BackupService {
   /**
    * バックアップから復元
    */
-  async restoreFromBackup(backupPath: string, targetDatabase?: string): Promise<void> {
+  async restoreFromBackup(_backupPath: string, _targetDatabase?: string): Promise<void> {
     try {
       console.log('Starting database restore...');
 

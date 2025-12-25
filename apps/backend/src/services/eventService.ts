@@ -418,16 +418,14 @@ export class EventService {
   /**
    * イベントへのアクセス権限チェック
    */
-  private canAccessEvent(event: Event, userId: string): boolean {
+  private canAccessEvent(event: Event, _userId: string): boolean {
     // 全体公開イベントの場合
     if (event.is_all_graduates) {
       return true;
     }
 
     // ユーザーの卒業年を取得
-    const userProfile = prisma.profile.findUnique({
-      where: { id: userId }
-    });
+    // TODO: 非同期処理を避けるため、事前にユーザープロファイルを取得するように改修
 
     // TODO: 非同期処理を避けるため、事前にユーザープロファイルを取得するように改修
     // ここでは仮にtrueを返す

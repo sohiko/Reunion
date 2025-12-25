@@ -1,7 +1,6 @@
 import { prisma } from '../utils/prisma';
 import { FileUploadService } from './fileUploadService';
 import { UUIDUtil } from '@reunion/shared';
-import { config } from '../config';
 import {
   AccountStatus
 } from '@reunion/shared';
@@ -82,7 +81,7 @@ export class VerificationService {
   /**
    * 身分証明書を取得（署名付きURL付き）
    */
-  async getVerificationDocument(documentId: string, reviewerId?: string): Promise<VerificationDocument & { signedUrl?: string }> {
+  async getVerificationDocument(documentId: string, _reviewerId?: string): Promise<VerificationDocument & { signedUrl?: string }> {
     const document = await prisma.verificationDocument.findUnique({
       where: { id: documentId },
       include: {
